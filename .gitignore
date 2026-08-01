@@ -1,0 +1,25 @@
+# Build folders
+build/
+bin/
+
+# Executables
+*.exe
+*.out
+
+# Object files
+*.o
+*.obj
+
+# Libraries
+*.a
+*.lib
+*.dll
+
+# Debug files
+*.pdb
+
+# VS Code
+.vscode/
+
+# SQLite database
+database/*.db
