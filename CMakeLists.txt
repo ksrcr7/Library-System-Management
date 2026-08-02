@@ -12,3 +12,5 @@ add_executable(LibraryManagementSystem
 )
 
 target_include_directories(LibraryManagementSystem PRIVATE include)
+target_link_directories(LibraryManagementSystem PRIVATE /ucrt64/lib)
+target_link_libraries(LibraryManagementSystem PRIVATE sqlite3)

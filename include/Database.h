@@ -8,7 +8,7 @@ class Database {
 
     public:
     Database(const std::string& path);
-    bool openDatabase();
+    ~Database();
 
 
 };
