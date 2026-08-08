@@ -12,6 +12,7 @@ class Database {
     public:
     Database(const std::string& path);
     void addBook(Book& book);
+    void deleteBook(sqlite3_int64 id);
 
 
 

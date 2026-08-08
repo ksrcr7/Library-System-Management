@@ -64,6 +64,33 @@ void Database::addBook(Book &book) {
 
 }
 
+void Database::deleteBook(sqlite3_int64 id) {
+    const char* sql = "DELETE FROM books WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, id);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_step(stmt);
+    if(rc != SQLITE_DONE){
+        throwSqliteError(stmt);
+    }
+
+    auto changes = sqlite3_changes(db);
+    if(changes == 0){
+        sqlite3_finalize(stmt);
+        throw std::runtime_error("No book found with the given ID.");
+    }
+
+    sqlite3_finalize(stmt);
+}
 
 Database::~Database() {
     if(db){
