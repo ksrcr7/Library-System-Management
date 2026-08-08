@@ -124,6 +124,54 @@ std::vector<Book> Database::getAllBooks(){
 
 }
 
+void Database::updateBook(Book &book) {
+    const char* sql = "UPDATE books SET title = ?, author = ?, publish_year = ?, available = ? WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_text(stmt, 1, book.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_text(stmt, 2, book.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_int(stmt, 3, book.getPublishYear());
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_int(stmt, 4, book.isAvailable());
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_int64(stmt, 5, book.getId());
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_step(stmt);
+    if(rc != SQLITE_DONE){
+        throwSqliteError(stmt);
+    }
+
+    auto changes = sqlite3_changes(db);
+    if(changes == 0){
+        sqlite3_finalize(stmt);
+        throw std::runtime_error("No book found with the given ID.");
+    }
+
+    sqlite3_finalize(stmt);
+}
+
 Database::~Database() {
     if(db){
         sqlite3_close(db);
