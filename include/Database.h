@@ -1,5 +1,6 @@
 #include <sqlite3.h>
 #include <string>
+#include <vector>
 #include "Book.h"
 
 class Database {
@@ -13,6 +14,7 @@ class Database {
     Database(const std::string& path);
     void addBook(Book& book);
     void deleteBook(sqlite3_int64 id);
+    std::vector<Book> getAllBooks();
 
 
 
