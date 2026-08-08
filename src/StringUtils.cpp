@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <string>
 
 std::string trim(const std::string& str){
     auto first = std::find_if_not(str.begin(),str.end(),
