@@ -172,6 +172,47 @@ void Database::updateBook(Book &book) {
     sqlite3_finalize(stmt);
 }
 
+std::vector<Book> Database::searchBooks(const std::string &keyword) {
+    std::vector<Book> searchResults;
+    std::string pattern = "%" + keyword + "%";
+    const char* sql = "SELECT id, title, author, publish_year, available FROM books WHERE title LIKE ? OR author LIKE ? ORDER BY title;";
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_text(stmt, 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_text(stmt, 2, pattern.c_str(), -1, SQLITE_TRANSIENT);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
+        sqlite3_int64 id = sqlite3_column_int64(stmt, 0);
+        std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        int publishYear = sqlite3_column_int(stmt, 3);
+        bool available = sqlite3_column_int(stmt, 4) != 0;
+
+        Book book(title, author, publishYear, available);
+        book.setId(id);
+        searchResults.emplace_back(book);
+    }
+
+    if(rc != SQLITE_DONE){
+        throwSqliteError(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    return searchResults;
+}
+
 Database::~Database() {
     if(db){
         sqlite3_close(db);

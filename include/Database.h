@@ -16,6 +16,7 @@ class Database {
     void deleteBook(sqlite3_int64 id);
     std::vector<Book> getAllBooks();
     void updateBook(Book& book);
+    std::vector<Book> searchBooks(const std::string& keyword);
 
 
 
