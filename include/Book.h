@@ -25,6 +25,11 @@ class Book {
         const std::string& getAuthor()const;
         int getPublishYear()const;
         bool isAvailable()const;  
+
+        void setTitle(const std::string& title);
+        void setAuthor(const std::string& author);
+        void setPublishYear(int publishYear);
+        void setAvailable(bool available);
         
         
 

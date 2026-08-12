@@ -1,5 +1,6 @@
 #include <Database.h>
 #include <stdexcept>
+#include <iostream>
 
 
 
@@ -11,6 +12,7 @@ Database::Database(const std::string &path) : databasePath(path)
         sqlite3_close(db);
         throw std::runtime_error(errormsg);
     }
+    createTables();
 }
 
 void Database::throwSqliteError(sqlite3_stmt *stmt) const {

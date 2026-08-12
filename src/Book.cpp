@@ -22,9 +22,7 @@ void Book::validate() const {
     if(author.empty()){
         throw std::invalid_argument("Author is empty.");
     }
-    if(id <= 0){
-        throw std::invalid_argument("Invalid Id.");
-    }
+    
     if(publishYear > currentYear() || publishYear < MIN_YEAR){
         throw std::invalid_argument("Invalid publish year.");
     }
@@ -65,14 +63,29 @@ bool Book::isAvailable() const
     return available;
 }
 
+void Book::setTitle(const std::string &title) {
+    this->title = trim(title);
+    validate();
+}
+
+void Book::setAuthor(const std::string &author) {
+    this->author = trim(author);
+    validate();
+}
+
+void Book::setPublishYear(int publishYear) {
+    this->publishYear = publishYear;
+    validate();
+}
+
+void Book::setAvailable(bool available) {
+    this->available = available;
+}
+
 void Book::setId(sqlite3_int64 id)
 {
     if(id <= 0){
         throw std::invalid_argument("Invalid Id.");
-    }
-    
-    if(this->id != 0){
-        throw std::logic_error("Id is already set.");
     }
 
     this->id = id;
