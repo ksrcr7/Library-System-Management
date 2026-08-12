@@ -12,7 +12,7 @@ Database::Database(const std::string &path) : databasePath(path)
         sqlite3_close(db);
         throw std::runtime_error(errormsg);
     }
-    createTables();
+    createBookTables();
 }
 
 void Database::throwSqliteError(sqlite3_stmt *stmt) const {
@@ -274,7 +274,7 @@ Database::~Database() {
     
 }
 
-void Database::createTables() {
+void Database::createBookTables() {
     const char* sql = "CREATE TABLE IF NOT EXISTS books ("
                       "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                       "title TEXT NOT NULL, "

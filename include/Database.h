@@ -7,7 +7,7 @@ class Database {
     private:
     sqlite3* db = nullptr;
     std::string databasePath;
-    void createTables();
+    void createBookTables();
     [[noreturn]] void throwSqliteError(sqlite3_stmt* stmt) const;
 
     public:
