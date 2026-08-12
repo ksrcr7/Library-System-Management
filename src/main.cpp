@@ -1,5 +1,6 @@
 #include "Database.h"
 #include "ConsoleUtils.h"
+#include "Book.h"
 #include <iostream>
 
 
@@ -72,7 +73,39 @@ int main(){
                     printSearchResults(books);
                     break;
                 }
-                case 5:
+
+                case 5:{
+                    std::string keyword;
+                    std::cerr <<"Enter the title or author: ";
+                    std::getline(std::cin >> std::ws, keyword);
+                    auto searchResults = DB.searchBooks(keyword);
+                    if(searchResults.empty()){
+                        std::cerr << "No books found matching the keyword." << std::endl;
+                        break;
+                    }
+                    printSearchResults(searchResults);
+                    sqlite3_int64 id = getValidIdInput(searchResults);
+                    DB.borrowBook(id);
+                    std::cout << "Book borrowed successfully." << std::endl;
+                    break;
+                }
+                
+                case 6:{
+                    std::string keyword;
+                    std::cerr <<"Enter the title or author: ";
+                    std::getline(std::cin >> std::ws, keyword);
+                    auto searchResults = DB.searchBooks(keyword);
+                    if(searchResults.empty()){
+                        std::cerr << "No books found matching the keyword." << std::endl;
+                        break;
+                    }
+                    printSearchResults(searchResults);
+                    sqlite3_int64 id = getValidIdInput(searchResults);
+                    DB.returnBook(id);
+                    std::cout << "Book returned successfully." << std::endl;
+                    break;
+                }
+                case 7:
                     std::cout << "Exiting..." << std::endl;
                     return 0;
 

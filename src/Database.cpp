@@ -215,6 +215,58 @@ std::vector<Book> Database::searchBooks(const std::string &keyword) {
     return searchResults;
 }
 
+void Database::borrowBook(sqlite3_int64 id) {
+    const char* sql = "UPDATE books SET available = 0 WHERE id = ? AND available = 1;";
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, id);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_step(stmt);
+    if(rc != SQLITE_DONE){
+        throwSqliteError(stmt);
+    }
+
+    if(sqlite3_changes(db) == 0){
+        sqlite3_finalize(stmt);
+        throw std::runtime_error("Book is either not available or does not exist.");
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+void Database::returnBook(sqlite3_int64 id) {
+    const char* sql = "UPDATE books SET available = 1 WHERE id = ? AND available = 0;";
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, id);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+
+    rc = sqlite3_step(stmt);
+    if(rc != SQLITE_DONE){
+        throwSqliteError(stmt);
+    }
+
+    if(sqlite3_changes(db) == 0){
+        sqlite3_finalize(stmt);
+        throw std::runtime_error("Book is either not borrowed or does not exist.");
+    }
+
+    sqlite3_finalize(stmt);
+}
+
 Database::~Database() {
     if(db){
         sqlite3_close(db);

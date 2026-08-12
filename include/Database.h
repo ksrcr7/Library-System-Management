@@ -17,6 +17,8 @@ class Database {
     std::vector<Book> getAllBooks();
     void updateBook(Book& book);
     std::vector<Book> searchBooks(const std::string& keyword);
+    void borrowBook(sqlite3_int64 id);
+    void returnBook(sqlite3_int64 id);
 
 
 

@@ -10,6 +10,7 @@ add_executable(LibraryManagementSystem
     src/Book.cpp
     src/Database.cpp
     src/StringUtils.cpp
+    src/ConsoleUtils.cpp
 )
 
 target_include_directories(LibraryManagementSystem PRIVATE include)

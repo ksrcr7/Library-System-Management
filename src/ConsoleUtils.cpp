@@ -8,7 +8,9 @@ void printMenu(){
     std::cout << "2. Delete a book" << std::endl;
     std::cout << "3. Update a book" << std::endl;
     std::cout << "4. List all books" << std::endl;
-    std::cout << "5. Exit" << std::endl;
+    std::cout << "5. Borrow a book" << std::endl;
+    std::cout << "6. Return a book" << std::endl;
+    std::cout << "7. Exit" << std::endl;
 }
 
 int getCommandInput(){
@@ -22,8 +24,8 @@ int getCommandInput(){
             continue;
         }
 
-        if(command < 1 || command > 5){
-            std::cerr << "Invalid command. Please enter a number between 1 and 5." << std::endl;
+        if(command < 1 || command > 7){
+            std::cerr << "Invalid command. Please enter a number between 1 and 7." << std::endl;
             continue;
         }
         break;
