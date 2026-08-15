@@ -1,5 +1,6 @@
 #include "Database.h"
 #include "ConsoleUtils.h"
+#include <StringUtils.h>
 #include "Book.h"
 #include <iostream>
 
@@ -85,7 +86,19 @@ int main(){
                     }
                     printSearchResults(searchResults);
                     sqlite3_int64 id = getValidIdInput(searchResults);
-                    DB.borrowBook(id);
+                    
+                    std::string borrowerName;
+                    while(true){
+                        std::cerr << "Enter borrower's name: ";
+                        std::getline(std::cin >> std::ws, borrowerName);
+                        borrowerName = trim(borrowerName);
+                        if(!borrowerName.empty()){
+                            break;
+                        }
+                        std::cerr << "Borrower's name cannot be empty." << std::endl;
+                    }
+
+                    DB.borrowBook(id, borrowerName);
                     std::cout << "Book borrowed successfully." << std::endl;
                     break;
                 }

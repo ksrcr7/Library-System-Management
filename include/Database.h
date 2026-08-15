@@ -8,6 +8,7 @@ class Database {
     sqlite3* db = nullptr;
     std::string databasePath;
     void createBookTables();
+    void createBorrowHistoryTables();
     [[noreturn]] void throwSqliteError(sqlite3_stmt* stmt) const;
 
     public:
@@ -17,7 +18,7 @@ class Database {
     std::vector<Book> getAllBooks();
     void updateBook(Book& book);
     std::vector<Book> searchBooks(const std::string& keyword);
-    void borrowBook(sqlite3_int64 id);
+    void borrowBook(sqlite3_int64 id, const std::string& borrowerName);
     void returnBook(sqlite3_int64 id);
 
 
