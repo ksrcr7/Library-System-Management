@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "Book.h"
+#include "BorrowRecord.h"
 
 class Database {
     private:
@@ -20,6 +21,7 @@ class Database {
     std::vector<Book> searchBooks(const std::string& keyword);
     void borrowBook(sqlite3_int64 id, const std::string& borrowerName);
     void returnBook(sqlite3_int64 id);
+    std::vector<BorrowRecord> getBorrowedBookHistory(sqlite3_int64 bookId);
 
 
 
