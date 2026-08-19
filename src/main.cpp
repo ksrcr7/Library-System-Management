@@ -140,7 +140,16 @@ int main(){
                     
                     
                 }
-                case 8:
+                case 8:{
+                    auto allBorrowRecords = DB.getAllBorrowRecords();
+                    if(allBorrowRecords.empty()){
+                        std::cerr << "No borrow records found." << std::endl;
+                        break;
+                    }
+                    printAllBorrowRecords(allBorrowRecords);
+                    break;
+                }
+                case 9:
                     std::cout << "Exiting..." << std::endl;
                     return 0;
 

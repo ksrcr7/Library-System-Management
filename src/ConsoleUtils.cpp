@@ -12,7 +12,8 @@ void printMenu(){
     std::cout << "5. Borrow a book" << std::endl;
     std::cout << "6. Return a book" << std::endl;
     std::cout << "7. History of book" << std::endl;
-    std::cout << "8. Exit" << std::endl;
+    std::cout << "8. All Borrow Records" << std::endl;
+    std::cout << "9. Exit" << std::endl;
 }
 
 int getCommandInput(){
@@ -26,8 +27,8 @@ int getCommandInput(){
             continue;
         }
 
-        if(command < 1 || command > 8){
-            std::cerr << "Invalid command. Please enter a number between 1 and 8." << std::endl;
+        if(command < 1 || command > 9){
+            std::cerr << "Invalid command. Please enter a number between 1 and 9." << std::endl;
             continue;
         }
         break;
@@ -174,6 +175,24 @@ void printBorrowHistory(const std::vector<BorrowRecord> &history) {
               << std::endl;
 
     for(const auto& record : history){
+        std::cout << std::left << std::setw(5) << record.bookId
+                  << std::setw(30) << record.bookTitle 
+                  << std::setw(30) << record.borrowerName 
+                  << std::setw(30) << record.borrowDate 
+                  << std::setw(30) << (record.returnDate.has_value() ? record.returnDate.value() : "Not returned") 
+                  << std::endl;
+    }
+}
+
+void printAllBorrowRecords(const std::vector<BorrowRecord> &records) {
+    std::cout << std::left << std::setw(5) << "ID" 
+              << std::setw(30) << "Book Title" 
+              << std::setw(30) << "Borrower Name" 
+              << std::setw(30) << "Borrow Date" 
+              << std::setw(30) << "Return Date" 
+              << std::endl;
+
+    for(const auto& record : records){
         std::cout << std::left << std::setw(5) << record.bookId
                   << std::setw(30) << record.bookTitle 
                   << std::setw(30) << record.borrowerName 

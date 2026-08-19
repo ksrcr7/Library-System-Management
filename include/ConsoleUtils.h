@@ -14,4 +14,5 @@ Book getBookbyId(const std::vector<Book>& books, sqlite3_int64 id);
 void editBookData(Book& book);
 void printSearchResults(const std::vector<Book>& books);
 void printBorrowHistory(const std::vector<BorrowRecord>& history);
+void printAllBorrowRecords(const std::vector<BorrowRecord>& records);
 

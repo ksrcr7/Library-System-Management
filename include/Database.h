@@ -22,6 +22,7 @@ class Database {
     void borrowBook(sqlite3_int64 id, const std::string& borrowerName);
     void returnBook(sqlite3_int64 id);
     std::vector<BorrowRecord> getBorrowedBookHistory(sqlite3_int64 bookId);
+    std::vector<BorrowRecord> getAllBorrowRecords();
 
 
 

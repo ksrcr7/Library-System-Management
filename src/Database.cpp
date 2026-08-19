@@ -423,6 +423,51 @@ std::vector<BorrowRecord> Database::getBorrowedBookHistory(sqlite3_int64 bookId)
 
 }
 
+std::vector<BorrowRecord> Database::getAllBorrowRecords(){
+    std::vector<BorrowRecord> result;
+    
+    const char* sql = "SELECT bh.id, bh.book_id, b.title, bh.borrower_name, "
+                      "bh.borrow_date, bh.return_date "
+                      "FROM borrow_history AS bh "
+                      "JOIN books AS b ON bh.book_id = b.id "
+                      "ORDER BY bh.borrow_date DESC;";
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if(rc != SQLITE_OK){
+        throwSqliteError(stmt);
+    }
+    
+    while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
+        BorrowRecord record;
+        record.id = sqlite3_column_int64(stmt, 0);
+        record.bookId = sqlite3_column_int64(stmt, 1);
+        record.bookTitle = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        record.borrowerName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        record.borrowDate = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+
+        if(sqlite3_column_type(stmt, 5) == SQLITE_NULL){
+            record.returnDate = std::nullopt;
+        }
+        else{
+            record.returnDate = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+        }
+
+        result.emplace_back(record);
+    }
+
+    if(rc != SQLITE_DONE){
+        throwSqliteError(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    stmt = nullptr;
+    return result;
+    
+
+
+}
+
 Database::~Database() {
     if(db){
         sqlite3_close(db);
