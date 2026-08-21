@@ -11,6 +11,7 @@ add_executable(LibraryManagementSystem
     src/Database.cpp
     src/StringUtils.cpp
     src/ConsoleUtils.cpp
+    include/SQLiteUtils.h
 )
 
 target_include_directories(LibraryManagementSystem PRIVATE include)

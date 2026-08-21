@@ -10,7 +10,7 @@ class Database {
     std::string databasePath;
     void createBookTables();
     void createBorrowHistoryTables();
-    [[noreturn]] void throwSqliteError(sqlite3_stmt* stmt) const;
+    [[noreturn]] void throwSqliteError() const;
 
     public:
     Database(const std::string& path);

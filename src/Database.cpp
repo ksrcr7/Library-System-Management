@@ -1,6 +1,7 @@
 #include <Database.h>
 #include <stdexcept>
 #include <iostream>
+#include <SQLiteUtils.h>
 
 
 
@@ -19,101 +20,102 @@ Database::Database(const std::string &path) : databasePath(path)
     createBorrowHistoryTables();
 }
 
-void Database::throwSqliteError(sqlite3_stmt *stmt) const {
-    
-    sqlite3_finalize(stmt);
+
+
+void Database::throwSqliteError() const {
     throw std::runtime_error(sqlite3_errmsg(db));
 }
 
 void Database::addBook(Book &book) {
     const char* sql = "INSERT INTO books (title, author, publish_year, available) VALUES (?, ?, ?, ?);";
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt* rawStmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
+    UniqueStatementPtr stmt (rawStmt);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
     
 
-    rc = sqlite3_bind_text(stmt, 1, book.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt.get(), 1, book.getTitle().c_str(), -1, SQLITE_TRANSIENT);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
     
 
-    rc = sqlite3_bind_text(stmt, 2, book.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt.get(), 2, book.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
     
 
-    rc = sqlite3_bind_int(stmt, 3, book.getPublishYear());
+    rc = sqlite3_bind_int(stmt.get(), 3, book.getPublishYear());
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
     
 
-    rc = sqlite3_bind_int(stmt, 4, book.isAvailable());
+    rc = sqlite3_bind_int(stmt.get(), 4, book.isAvailable());
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_step(stmt);
+    rc = sqlite3_step(stmt.get());
     if(rc != SQLITE_DONE){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
     sqlite3_int64 lastId = sqlite3_last_insert_rowid(db);
     book.setId(lastId);
 
-    sqlite3_finalize(stmt);
 
 }
 
 void Database::deleteBook(sqlite3_int64 id) {
     const char* sql = "DELETE FROM books WHERE id = ?;";
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt* rawStmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
+    UniqueStatementPtr stmt (rawStmt);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_int64(stmt, 1, id);
+    rc = sqlite3_bind_int64(stmt.get(), 1, id);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_step(stmt);
+    rc = sqlite3_step(stmt.get());
     if(rc != SQLITE_DONE){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
     auto changes = sqlite3_changes(db);
     if(changes == 0){
-        sqlite3_finalize(stmt);
         throw std::runtime_error("No book found with the given ID.");
     }
 
-    sqlite3_finalize(stmt);
+    
 }
 
 std::vector<Book> Database::getAllBooks(){
     std::vector<Book> books;
     const char* sql = "SELECT id, title, author, publish_year, available FROM books;";
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt* rawStmt = nullptr;
     
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
+    UniqueStatementPtr stmt(rawStmt);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
-        sqlite3_int64 id = sqlite3_column_int64(stmt, 0);
-        std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        int publishYear = sqlite3_column_int(stmt, 3);
-        bool available = sqlite3_column_int(stmt, 4) != 0;
+    while((rc = sqlite3_step(stmt.get())) == SQLITE_ROW){
+        sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
+        std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+        std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
+        int publishYear = sqlite3_column_int(stmt.get(), 3);
+        bool available = sqlite3_column_int(stmt.get(), 4) != 0;
 
         Book book(title, author, publishYear, available);
         book.setId(id);
@@ -121,10 +123,10 @@ std::vector<Book> Database::getAllBooks(){
     }
 
     if(rc != SQLITE_DONE){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    sqlite3_finalize(stmt);
+    
     return books;
 
 
@@ -132,50 +134,50 @@ std::vector<Book> Database::getAllBooks(){
 
 void Database::updateBook(Book &book) {
     const char* sql = "UPDATE books SET title = ?, author = ?, publish_year = ?, available = ? WHERE id = ?;";
-    sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt* rawStmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
+    UniqueStatementPtr stmt(rawStmt);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_text(stmt, 1, book.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt.get(), 1, book.getTitle().c_str(), -1, SQLITE_TRANSIENT);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_text(stmt, 2, book.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt.get(), 2, book.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_int(stmt, 3, book.getPublishYear());
+    rc = sqlite3_bind_int(stmt.get(), 3, book.getPublishYear());
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_int(stmt, 4, book.isAvailable());
+    rc = sqlite3_bind_int(stmt.get(), 4, book.isAvailable());
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_int64(stmt, 5, book.getId());
+    rc = sqlite3_bind_int64(stmt.get(), 5, book.getId());
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_step(stmt);
+    rc = sqlite3_step(stmt.get());
     if(rc != SQLITE_DONE){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
     auto changes = sqlite3_changes(db);
     if(changes == 0){
-        sqlite3_finalize(stmt);
         throw std::runtime_error("No book found with the given ID.");
     }
 
-    sqlite3_finalize(stmt);
+    
 }
 
 std::vector<Book> Database::searchBooks(const std::string &keyword) {
@@ -183,28 +185,29 @@ std::vector<Book> Database::searchBooks(const std::string &keyword) {
     std::string pattern = "%" + keyword + "%";
     const char* sql = "SELECT id, title, author, publish_year, available FROM books WHERE title LIKE ? OR author LIKE ? ORDER BY title;";
 
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_stmt* rawStmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
+    UniqueStatementPtr stmt(rawStmt);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_text(stmt, 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt.get(), 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    rc = sqlite3_bind_text(stmt, 2, pattern.c_str(), -1, SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt.get(), 2, pattern.c_str(), -1, SQLITE_TRANSIENT);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
-        sqlite3_int64 id = sqlite3_column_int64(stmt, 0);
-        std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        int publishYear = sqlite3_column_int(stmt, 3);
-        bool available = sqlite3_column_int(stmt, 4) != 0;
+    while((rc = sqlite3_step(stmt.get())) == SQLITE_ROW){
+        sqlite3_int64 id = sqlite3_column_int64(stmt.get(), 0);
+        std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+        std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
+        int publishYear = sqlite3_column_int(stmt.get(), 3);
+        bool available = sqlite3_column_int(stmt.get(), 4) != 0;
 
         Book book(title, author, publishYear, available);
         book.setId(id);
@@ -212,11 +215,12 @@ std::vector<Book> Database::searchBooks(const std::string &keyword) {
     }
 
     if(rc != SQLITE_DONE){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    sqlite3_finalize(stmt);
+    
     return searchResults;
+
 }
 
 void Database::borrowBook(sqlite3_int64 id, const std::string& borrowerName) {
@@ -227,65 +231,68 @@ void Database::borrowBook(sqlite3_int64 id, const std::string& borrowerName) {
     }
     
     try{
+        {
         const char* sql1 = "UPDATE books SET available = 0 WHERE id = ? AND available = 1;";
-        sqlite3_stmt* stmt = nullptr;
-        int rc = sqlite3_prepare_v2(db, sql1, -1, &stmt, nullptr);
+        sqlite3_stmt* rawStmt = nullptr;
+        rc = sqlite3_prepare_v2(db, sql1, -1, &rawStmt, nullptr);
+        UniqueStatementPtr stmt(rawStmt);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_bind_int64(stmt, 1, id);
+        rc = sqlite3_bind_int64(stmt.get(), 1, id);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_step(stmt);
+        rc = sqlite3_step(stmt.get());
         if(rc != SQLITE_DONE){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
         if(sqlite3_changes(db) == 0){
-            sqlite3_finalize(stmt);
             throw std::runtime_error("Book is either not available or does not exist.");
         }
         
-        sqlite3_finalize(stmt);
-        stmt = nullptr; 
+    }   
 
+        {
         const char* sql2 = "INSERT INTO borrow_history (book_id, borrower_name) VALUES (?, ?);";
-        rc = sqlite3_prepare_v2(db, sql2, -1, &stmt, nullptr);
+        sqlite3_stmt* rawStmt = nullptr;
+        rc = sqlite3_prepare_v2(db, sql2, -1, &rawStmt, nullptr);
+        UniqueStatementPtr stmt(rawStmt);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_bind_int64(stmt, 1, id);
+        rc = sqlite3_bind_int64(stmt.get(), 1, id);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_bind_text(stmt, 2, borrowerName.c_str(), -1, SQLITE_TRANSIENT);
+        rc = sqlite3_bind_text(stmt.get(), 2, borrowerName.c_str(), -1, SQLITE_TRANSIENT);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_step(stmt);
+        rc = sqlite3_step(stmt.get());
         if(rc != SQLITE_DONE){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
         if (sqlite3_changes(db) == 0) {
-        sqlite3_finalize(stmt);
         throw std::runtime_error("Failed to create borrow history.");
     }
-        sqlite3_finalize(stmt);
-        stmt = nullptr;
+        
+        
+    }
         rc = sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr);
         if(rc != SQLITE_OK){
             throw std::runtime_error("Failed to commit transaction.");
         }
-    }
+}
 
-    catch(const std::exception& e){
+    catch(const std::exception&){
         rc = sqlite3_exec(db, "ROLLBACK;", nullptr, nullptr, nullptr);
         if(rc != SQLITE_OK){
             throw std::runtime_error("Failed to rollback transaction.");
@@ -304,63 +311,63 @@ void Database::returnBook(sqlite3_int64 id) {
 
     try{
         const char* sql1 = "UPDATE books SET available = 1 WHERE id = ? AND available = 0;";
-        sqlite3_stmt* stmt = nullptr;
+        {sqlite3_stmt* rawStmt = nullptr;
 
-        int rc = sqlite3_prepare_v2(db, sql1, -1, &stmt, nullptr);
+        rc = sqlite3_prepare_v2(db, sql1, -1, &rawStmt, nullptr);
+        UniqueStatementPtr stmt(rawStmt);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_bind_int64(stmt, 1, id);
+        rc = sqlite3_bind_int64(stmt.get(), 1, id);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_step(stmt);
+        rc = sqlite3_step(stmt.get());
         if(rc != SQLITE_DONE){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
         if(sqlite3_changes(db) == 0){
-            sqlite3_finalize(stmt);
             throw std::runtime_error("Book is either not borrowed or does not exist.");
         }
-        sqlite3_finalize(stmt);
-        stmt = nullptr;
-
+        
+    }
         const char* sql2 = "UPDATE borrow_history "
                             "SET return_date = CURRENT_TIMESTAMP "
                             "WHERE book_id = ? AND return_date IS NULL;";
         
-        rc = sqlite3_prepare_v2(db, sql2, -1, &stmt, nullptr);
+        {
+        sqlite3_stmt* rawStmt = nullptr;
+        rc = sqlite3_prepare_v2(db, sql2, -1, &rawStmt, nullptr);
+        UniqueStatementPtr stmt(rawStmt);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
         
-        rc = sqlite3_bind_int64(stmt, 1, id);
+        rc = sqlite3_bind_int64(stmt.get(), 1, id);
         if(rc != SQLITE_OK){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
 
-        rc = sqlite3_step(stmt);
+        rc = sqlite3_step(stmt.get());
         if(rc != SQLITE_DONE){
-            throwSqliteError(stmt);
+            throwSqliteError();
         }
         
         if(sqlite3_changes(db) == 0){
-            sqlite3_finalize(stmt);
             throw std::runtime_error("No borrow history found for this book.");
         }
 
-        sqlite3_finalize(stmt);
-        stmt = nullptr;
+        
 
         rc = sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr);
         if(rc != SQLITE_OK){
             throw std::runtime_error("Failed to commit transaction.");
         }
     }
-
+    }
     catch(const std::exception& e){
         rc = sqlite3_exec(db, "ROLLBACK;", nullptr, nullptr, nullptr);
         if(rc != SQLITE_OK){
@@ -383,30 +390,31 @@ std::vector<BorrowRecord> Database::getBorrowedBookHistory(sqlite3_int64 bookId)
                       "ORDER BY bh.borrow_date DESC;";
 
     
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(db,sql,-1, &stmt, nullptr); 
+    sqlite3_stmt* rawStmt = nullptr;
+    int rc = sqlite3_prepare_v2(db,sql,-1, &rawStmt, nullptr); 
+    UniqueStatementPtr stmt(rawStmt);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }  
     
-    rc = sqlite3_bind_int64(stmt,1,bookId);
+    rc = sqlite3_bind_int64(stmt.get(),1,bookId);
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+    while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW) {
         BorrowRecord record;
-        record.id = sqlite3_column_int64(stmt,0);
-        record.bookId = sqlite3_column_int64(stmt,1);
-        record.bookTitle = reinterpret_cast<const char*> (sqlite3_column_text(stmt,2));
-        record.borrowerName = reinterpret_cast<const char*> (sqlite3_column_text(stmt,3));
-        record.borrowDate = reinterpret_cast<const char*> (sqlite3_column_text(stmt,4));
+        record.id = sqlite3_column_int64(stmt.get(),0);
+        record.bookId = sqlite3_column_int64(stmt.get(),1);
+        record.bookTitle = reinterpret_cast<const char*> (sqlite3_column_text(stmt.get(),2));
+        record.borrowerName = reinterpret_cast<const char*> (sqlite3_column_text(stmt.get(),3));
+        record.borrowDate = reinterpret_cast<const char*> (sqlite3_column_text(stmt.get(),4));
 
-        if(sqlite3_column_type(stmt,5) == SQLITE_NULL){
+        if(sqlite3_column_type(stmt.get(),5) == SQLITE_NULL){
             record.returnDate = std::nullopt;
         }
         else{
-            record.returnDate = reinterpret_cast<const char*> (sqlite3_column_text(stmt,5));
+            record.returnDate = reinterpret_cast<const char*> (sqlite3_column_text(stmt.get(),5));
         }
 
         result.emplace_back(record);
@@ -414,11 +422,10 @@ std::vector<BorrowRecord> Database::getBorrowedBookHistory(sqlite3_int64 bookId)
     }
 
     if(rc != SQLITE_DONE){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    sqlite3_finalize(stmt);
-    stmt = nullptr;
+    
     return result;
 
 }
@@ -432,36 +439,37 @@ std::vector<BorrowRecord> Database::getAllBorrowRecords(){
                       "JOIN books AS b ON bh.book_id = b.id "
                       "ORDER BY bh.borrow_date DESC;";
 
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_stmt* rawStmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
+    UniqueStatementPtr stmt(rawStmt);
+
     if(rc != SQLITE_OK){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
     
-    while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
+    while((rc = sqlite3_step(stmt.get())) == SQLITE_ROW){
         BorrowRecord record;
-        record.id = sqlite3_column_int64(stmt, 0);
-        record.bookId = sqlite3_column_int64(stmt, 1);
-        record.bookTitle = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        record.borrowerName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        record.borrowDate = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+        record.id = sqlite3_column_int64(stmt.get(), 0);
+        record.bookId = sqlite3_column_int64(stmt.get(), 1);
+        record.bookTitle = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 2));
+        record.borrowerName = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 3));
+        record.borrowDate = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 4));
 
-        if(sqlite3_column_type(stmt, 5) == SQLITE_NULL){
+        if(sqlite3_column_type(stmt.get(), 5) == SQLITE_NULL){
             record.returnDate = std::nullopt;
         }
         else{
-            record.returnDate = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+            record.returnDate = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 5));
         }
 
         result.emplace_back(record);
     }
 
     if(rc != SQLITE_DONE){
-        throwSqliteError(stmt);
+        throwSqliteError();
     }
 
-    sqlite3_finalize(stmt);
-    stmt = nullptr;
+    
     return result;
     
 
