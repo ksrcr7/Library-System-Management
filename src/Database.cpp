@@ -72,7 +72,9 @@ void Database::addBook(Book &book) {
 }
 
 void Database::deleteBook(sqlite3_int64 id) {
-    const char* sql = "DELETE FROM books WHERE id = ?;";
+    const char* sql = "UPDATE books "
+                      "SET active = 0 "
+                      "WHERE id = ? AND available = 1 AND active = 1;";
     sqlite3_stmt* rawStmt = nullptr;
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
@@ -93,7 +95,7 @@ void Database::deleteBook(sqlite3_int64 id) {
 
     auto changes = sqlite3_changes(db);
     if(changes == 0){
-        throw std::runtime_error("No book found with the given ID.");
+        throw std::runtime_error("Book cannot be deleted. It may not exist, may be borrowed, or may already be inactive.");
     }
 
     
@@ -101,7 +103,7 @@ void Database::deleteBook(sqlite3_int64 id) {
 
 std::vector<Book> Database::getAllBooks(){
     std::vector<Book> books;
-    const char* sql = "SELECT id, title, author, publish_year, available FROM books;";
+    const char* sql = "SELECT id, title, author, publish_year, available FROM books WHERE active = 1;";
     sqlite3_stmt* rawStmt = nullptr;
     
     int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
@@ -183,7 +185,7 @@ void Database::updateBook(Book &book) {
 std::vector<Book> Database::searchBooks(const std::string &keyword) {
     std::vector<Book> searchResults;
     std::string pattern = "%" + keyword + "%";
-    const char* sql = "SELECT id, title, author, publish_year, available FROM books WHERE title LIKE ? OR author LIKE ? ORDER BY title;";
+    const char* sql = "SELECT id, title, author, publish_year, available FROM books WHERE (title LIKE ? OR author LIKE ?) AND active = 1 ORDER BY title;";
 
     sqlite3_stmt* rawStmt = nullptr;
     int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
@@ -489,7 +491,8 @@ void Database::createBookTables() {
                       "title TEXT NOT NULL, "
                       "author TEXT NOT NULL, "
                       "publish_year INTEGER NOT NULL, "
-                      "available INTEGER NOT NULL DEFAULT 1);";
+                      "available INTEGER NOT NULL DEFAULT 1, "
+                      "active INTEGER NOT NULL DEFAULT 1);";
 
     
     char* errMsg = nullptr;
