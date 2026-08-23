@@ -15,6 +15,9 @@ class Book {
         int publishYear;
         bool available;
         void validate()const;
+        void validateTitle(const std::string& Temptitle) const;
+        void validateAuthor(const std::string& Tempauthor) const;
+        void validatePublishyear(int TempPublishYear) const;
         void setId(sqlite3_int64 id);
 
     public:
@@ -27,10 +30,10 @@ class Book {
         int getPublishYear()const;
         bool isAvailable()const;  
 
-        void setTitle(const std::string& title);
-        void setAuthor(const std::string& author);
-        void setPublishYear(int publishYear);
-        void setAvailable(bool available);
+        void setTitle(const std::string& Newtitle);
+        void setAuthor(const std::string& Newauthor);
+        void setPublishYear(int NewpublishYear);
+        void setAvailable(bool Newavailable);
         
         
 

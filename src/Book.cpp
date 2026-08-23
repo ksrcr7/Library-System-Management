@@ -16,20 +16,29 @@ static int currentYear(){
 }
 
 void Book::validate() const {
-    if(title.empty()){
-        throw std::invalid_argument("Title is empty.");
-    }
-    if(author.empty()){
-        throw std::invalid_argument("Author is empty.");
-    }
-    
-    if(publishYear > currentYear() || publishYear < MIN_YEAR){
-        throw std::invalid_argument("Invalid publish year.");
-    }
+    validateTitle(title);
+    validateAuthor(author);
+    validatePublishyear(publishYear);
 
 }
 
+void Book::validateTitle(const std::string &Temptitle) const {
+    if(Temptitle.empty()){
+        throw std::invalid_argument("Title is empty.");
+    }
+}
 
+void Book::validateAuthor(const std::string &Tempauthor) const {
+    if(Tempauthor.empty()){
+        throw std::invalid_argument("Author is empty.");
+    }
+}
+
+void Book::validatePublishyear(int TempPublishYear) const {
+    if(TempPublishYear > currentYear() || TempPublishYear < MIN_YEAR){
+        throw std::invalid_argument("Invalid publish year.");
+    }
+}
 
 Book::Book( const std::string &title, const std::string &author, int publishYear, bool available) :
 title(trim(title)),author(trim(author)),publishYear(publishYear),available(available) {
@@ -63,23 +72,25 @@ bool Book::isAvailable() const
     return available;
 }
 
-void Book::setTitle(const std::string &title) {
-    this->title = trim(title);
-    validate();
+void Book::setTitle(const std::string &Newtitle) {
+    std::string trimmedTitle = trim(Newtitle);
+    validateTitle(trimmedTitle);
+    title = trimmedTitle;
 }
 
-void Book::setAuthor(const std::string &author) {
-    this->author = trim(author);
-    validate();
+void Book::setAuthor(const std::string &Newauthor) {
+    std::string trimmedAuthor = trim(Newauthor);
+    validateAuthor(trimmedAuthor);
+    author = trimmedAuthor;
 }
 
-void Book::setPublishYear(int publishYear) {
-    this->publishYear = publishYear;
-    validate();
+void Book::setPublishYear(int NewpublishYear) {
+    validatePublishyear(NewpublishYear);
+    publishYear = NewpublishYear;
 }
 
-void Book::setAvailable(bool available) {
-    this->available = available;
+void Book::setAvailable(bool Newavailable) {
+    this->available = Newavailable;
 }
 
 void Book::setId(sqlite3_int64 id)
