@@ -135,7 +135,7 @@ std::vector<Book> Database::getAllBooks(){
 }
 
 void Database::updateBook(Book &book) {
-    const char* sql = "UPDATE books SET title = ?, author = ?, publish_year = ?, available = ? WHERE id = ?;";
+    const char* sql = "UPDATE books SET title = ?, author = ?, publish_year = ?, available = ? WHERE id = ? AND active = 1;";
     sqlite3_stmt* rawStmt = nullptr;
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &rawStmt, nullptr);
@@ -176,7 +176,7 @@ void Database::updateBook(Book &book) {
 
     auto changes = sqlite3_changes(db);
     if(changes == 0){
-        throw std::runtime_error("No book found with the given ID.");
+        throw std::runtime_error("Book not found or is no longer active.");
     }
 
     
