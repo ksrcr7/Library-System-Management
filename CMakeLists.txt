@@ -15,39 +15,35 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
-add_executable(LibraryManagementSystem
-    src/main.cpp
+add_library(
+    LibraryCore
     src/Book.cpp
     src/Database.cpp
     src/StringUtils.cpp
     src/ConsoleUtils.cpp
-    include/SQLiteUtils.h
 )
 
-target_include_directories(LibraryManagementSystem PRIVATE include)
+add_executable(
+    LibraryManagementSystem
+    src/main.cpp
+)
+
+target_include_directories(LibraryCore PUBLIC include)
 target_link_directories(LibraryManagementSystem PRIVATE /ucrt64/lib)
-target_link_libraries(LibraryManagementSystem PRIVATE sqlite3)
+target_link_libraries(LibraryCore PUBLIC sqlite3)
+target_link_libraries(LibraryManagementSystem PRIVATE LibraryCore)
 
 add_executable(
     LibraryManagementTests
-   
     tests/BookTests.cpp
     tests/DatabaseTests.cpp
-    
-    src/Book.cpp
-    src/StringUtils.cpp
-    src/Database.cpp
-)
-
-target_include_directories(
-    LibraryManagementTests
-    PRIVATE include
 )
 
 target_link_libraries (
     LibraryManagementTests
-    PRIVATE GTest::gtest_main
-    sqlite3
+    PRIVATE 
+    LibraryCore
+    GTest::gtest_main
 )
 
 include (GoogleTest)
