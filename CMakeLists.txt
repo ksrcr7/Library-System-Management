@@ -30,9 +30,13 @@ target_link_libraries(LibraryManagementSystem PRIVATE sqlite3)
 
 add_executable(
     LibraryManagementTests
+   
     tests/BookTests.cpp
+    tests/DatabaseTests.cpp
+    
     src/Book.cpp
     src/StringUtils.cpp
+    src/Database.cpp
 )
 
 target_include_directories(
@@ -43,6 +47,7 @@ target_include_directories(
 target_link_libraries (
     LibraryManagementTests
     PRIVATE GTest::gtest_main
+    sqlite3
 )
 
 include (GoogleTest)
