@@ -15,6 +15,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
+find_package(SQLite3 REQUIRED)
+
+
 add_library(
     LibraryCore
     src/Book.cpp
@@ -29,8 +32,7 @@ add_executable(
 )
 
 target_include_directories(LibraryCore PUBLIC include)
-target_link_directories(LibraryManagementSystem PRIVATE /ucrt64/lib)
-target_link_libraries(LibraryCore PUBLIC sqlite3)
+target_link_libraries(LibraryCore PUBLIC SQLite::SQLite3)
 target_link_libraries(LibraryManagementSystem PRIVATE LibraryCore)
 
 add_executable(
