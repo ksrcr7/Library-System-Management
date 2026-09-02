@@ -26,7 +26,7 @@ jobs:
 
             - name: Generate code coverage report
               run: |
-                lcov --capture --directory build --output-file coverage.info
-                lcov --remove coverage.info '/usr/*' '*/*' '*/tests/*' --output-file coverage.info
-                lcov --list coverage.info  
+                    lcov --capture --directory build --output-file coverage.info --ignore-errors mismatch
+                    lcov --extract coverage.info '*/src/*' --output-file coverage.info
+                    lcov --list coverage.info  
 
