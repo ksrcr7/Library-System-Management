@@ -1,4 +1,6 @@
 # Library Management System
+[![C++ CI](https://github.com/ksrcr7/Library-System-Management/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ksrcr7/Library-System-Management/actions/workflows/ci.yml)
+
 A C++20 Library management application backed by SQLite, designed to demonstrate database integration, resource-safe C++ programming, automated testing, and continuous integration.
 The application supports book management, borrowing and returning workflows, persistant borrowing history and soft deletion while preserving historical records.
 
