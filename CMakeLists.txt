@@ -56,12 +56,26 @@ target_link_libraries (
     GTest::gtest_main
 )
 
-if (ENABLE_COVERAGE)
-    target_compile_options (LibraryCore PRIVATE --coverage -O0 -g)
-    target_link_options (LibraryCore PRIVATE --coverage)
+if(ENABLE_COVERAGE)
+    target_compile_options(
+        LibraryCore
+        PRIVATE
+        --coverage
+        -O0
+        -g
+    )
 
-    target_compile_options(LibraryManagementTests PRIVATE --coverage -O0 -g)
-    target_link_options(LibraryManagementTests PRIVATE --coverage)
+    target_link_options(
+        LibraryManagementSystem
+        PRIVATE
+        --coverage
+    )
+
+    target_link_options(
+        LibraryManagementTests
+        PRIVATE
+        --coverage
+    )
 endif()
 
 include (GoogleTest)
