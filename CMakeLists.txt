@@ -5,6 +5,8 @@ project(LibraryManagementSystem)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(ENABLE_COVERAGE "Enable code coverage" OFF)
+
 include (FetchContent)
 FetchContent_Declare(
     googletest
@@ -26,14 +28,20 @@ add_library(
     src/ConsoleUtils.cpp
 )
 
+    
+
 add_executable(
     LibraryManagementSystem
     src/main.cpp
 )
 
+
+
 target_include_directories(LibraryCore PUBLIC include)
 target_link_libraries(LibraryCore PUBLIC SQLite::SQLite3)
 target_link_libraries(LibraryManagementSystem PRIVATE LibraryCore)
+
+
 
 add_executable(
     LibraryManagementTests
@@ -47,6 +55,14 @@ target_link_libraries (
     LibraryCore
     GTest::gtest_main
 )
+
+if (ENABLE_COVERAGE)
+    target_compile_options (LibraryCore PRIVATE --coverage -O0 -g)
+    target_link_options (LibraryCore PRIVATE --coverage)
+
+    target_compile_options(LibraryManagementTests PRIVATE --coverage -O0 -g)
+    target_link_options(LibraryManagementTests PRIVATE --coverage)
+endif()
 
 include (GoogleTest)
 gtest_discover_tests(LibraryManagementTests)
