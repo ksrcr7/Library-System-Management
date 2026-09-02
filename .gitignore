@@ -23,3 +23,12 @@ bin/
 
 # SQLite database
 database/*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Code coverage
+*.gcda
+*.gcno
+coverage.info
+coverage/
